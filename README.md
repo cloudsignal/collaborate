@@ -1,6 +1,6 @@
 # CloudSignal Realtime Cursors
 
-Real-time cursor tracking between multiple users, powered by [CloudSignal](https://cloudsignal.app) MQTT over WebSocket.
+Real-time cursor tracking between multiple users, powered by [CloudSignal](https://cloudsignal.io) MQTT over WebSocket.
 
 ## Quick Start
 
