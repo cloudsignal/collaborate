@@ -21,6 +21,9 @@ export default function RoomPage({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [now, setNow] = useState(Date.now());
+  const [burstUntil, setBurstUntil] = useState(0);
+  const isBurst = now < burstUntil;
+  const throttleMs = isBurst ? 16 : 30;
 
   const {
     cursors,
@@ -33,7 +36,7 @@ export default function RoomPage({
     joinRoom,
     publishCursor,
     userId,
-  } = useCursors({ roomId, userName });
+  } = useCursors({ roomId, userName, throttleMs });
 
   // Tick for cursor fade-out opacity
   useEffect(() => {
@@ -151,6 +154,18 @@ export default function RoomPage({
           <span className={`h-2 w-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-400">
+          {!isViewer && (
+            <button
+              onClick={() => setBurstUntil(Date.now() + 10000)}
+              className={`rounded px-2 py-0.5 font-medium transition-colors ${
+                isBurst
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {isBurst ? "60Hz" : "33Hz"}
+            </button>
+          )}
           {latency !== null && <span>{latency}ms latency</span>}
           {connectionTime !== null && <span>{connectionTime}ms connect</span>}
           <span>{messageCount} msgs</span>

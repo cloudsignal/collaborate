@@ -32,6 +32,8 @@ export function useCursors(options: UseCursorsOptions) {
   const userIdRef = useRef<string>("");
   const lastPublishRef = useRef(0);
   const connectStartRef = useRef(0);
+  const throttleMsRef = useRef(throttleMs);
+  throttleMsRef.current = throttleMs;
 
   const topic = `rooms/${roomId}/cursors`;
 
@@ -96,7 +98,7 @@ export function useCursors(options: UseCursorsOptions) {
   const publishCursor = useCallback(
     (x: number, y: number) => {
       const now = Date.now();
-      if (now - lastPublishRef.current < throttleMs) return;
+      if (now - lastPublishRef.current < throttleMsRef.current) return;
       lastPublishRef.current = now;
 
       const color = getColorForUser(userIdRef.current);
@@ -109,7 +111,7 @@ export function useCursors(options: UseCursorsOptions) {
         ts: now,
       }, { qos: 0 });
     },
-    [publish, topic, userName, throttleMs]
+    [publish, topic, userName]
   );
 
   // Clean up stale cursors
