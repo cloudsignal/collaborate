@@ -1,42 +1,45 @@
+"use client";
+
 export default function Home() {
   const roomId = "demo";
 
-  return (
-    <div className="flex h-screen flex-col bg-gray-900">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-700 px-6 py-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-white">
-            CloudSignal Realtime Cursors
-          </h1>
-          <span className="rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400">
-            Demo
-          </span>
-        </div>
-        <a
-          href={`/room/${roomId}`}
-          target="_blank"
-          className="text-sm text-gray-400 hover:text-white"
-        >
-          Open standalone
-        </a>
-      </div>
+  const openBothTabs = () => {
+    window.open(`/room/${roomId}?user=Bob`, "_blank");
+    window.open(`/room/${roomId}?user=Alice&mode=viewer`, "_blank");
+  };
 
-      {/* Split panels */}
-      <div className="flex flex-1">
-        <div className="flex-1 border-r border-gray-700">
-          <iframe
-            src={`/room/${roomId}?user=Alice`}
-            className="h-full w-full"
-            title="User Alice"
-          />
-        </div>
-        <div className="flex-1">
-          <iframe
-            src={`/room/${roomId}?user=Bob&mode=viewer`}
-            className="h-full w-full"
-            title="User Bob"
-          />
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-900">
+      <div className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-8">
+        <h1 className="mb-2 text-2xl font-bold text-white">
+          CloudSignal Realtime Cursors
+        </h1>
+        <p className="mb-8 text-sm text-gray-400">
+          Open two tabs side by side. Bob moves the cursor, Alice sees it in real-time.
+        </p>
+
+        <button
+          onClick={openBothTabs}
+          className="mb-6 w-full rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white hover:bg-blue-600"
+        >
+          Open Both Tabs
+        </button>
+
+        <div className="flex gap-3">
+          <a
+            href={`/room/${roomId}?user=Bob`}
+            target="_blank"
+            className="flex-1 rounded-lg border border-gray-600 px-4 py-2 text-center text-sm font-medium text-gray-300 hover:border-gray-400 hover:text-white"
+          >
+            Bob (leader)
+          </a>
+          <a
+            href={`/room/${roomId}?user=Alice&mode=viewer`}
+            target="_blank"
+            className="flex-1 rounded-lg border border-gray-600 px-4 py-2 text-center text-sm font-medium text-gray-300 hover:border-gray-400 hover:text-white"
+          >
+            Alice (viewer)
+          </a>
         </div>
       </div>
     </div>
