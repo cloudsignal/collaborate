@@ -66,24 +66,23 @@ export default function RoomPage({
     [publishCursor]
   );
 
-  // Get preconfigured credentials from env vars
-  const getCredentials = (name: string) => {
-    const key = name.trim().toUpperCase();
-    const username = process.env[`NEXT_PUBLIC_${key}_USERNAME`];
-    const password = process.env[`NEXT_PUBLIC_${key}_PASSWORD`];
-    if (username && password) {
-      return { username, password };
-    }
-    return null;
+  // Preconfigured credentials — Next.js requires static process.env references
+  const USER_CREDENTIALS: Record<string, { username: string; password: string } | undefined> = {
+    ALICE: process.env.NEXT_PUBLIC_ALICE_USERNAME && process.env.NEXT_PUBLIC_ALICE_PASSWORD
+      ? { username: process.env.NEXT_PUBLIC_ALICE_USERNAME, password: process.env.NEXT_PUBLIC_ALICE_PASSWORD }
+      : undefined,
+    BOB: process.env.NEXT_PUBLIC_BOB_USERNAME && process.env.NEXT_PUBLIC_BOB_PASSWORD
+      ? { username: process.env.NEXT_PUBLIC_BOB_USERNAME, password: process.env.NEXT_PUBLIC_BOB_PASSWORD }
+      : undefined,
   };
 
   // Join room
   const handleJoin = async () => {
     if (!userName.trim()) return;
 
-    const credentials = getCredentials(userName);
+    const credentials = USER_CREDENTIALS[userName.trim().toUpperCase()];
     if (!credentials) {
-      alert(`No credentials configured for "${userName}". Add NEXT_PUBLIC_${userName.trim().toUpperCase()}_USERNAME and NEXT_PUBLIC_${userName.trim().toUpperCase()}_PASSWORD to your environment.`);
+      alert(`No credentials configured for "${userName}". Supported users: ${Object.keys(USER_CREDENTIALS).filter(k => USER_CREDENTIALS[k]).join(", ") || "none — check your environment variables"}`);
       return;
     }
 
