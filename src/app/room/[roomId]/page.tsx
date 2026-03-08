@@ -66,22 +66,27 @@ export default function RoomPage({
     [publishCursor]
   );
 
+  // Get preconfigured credentials from env vars
+  const getCredentials = (name: string) => {
+    const key = name.trim().toUpperCase();
+    const username = process.env[`NEXT_PUBLIC_${key}_USERNAME`];
+    const password = process.env[`NEXT_PUBLIC_${key}_PASSWORD`];
+    if (username && password) {
+      return { username, password };
+    }
+    return null;
+  };
+
   // Join room
   const handleJoin = async () => {
     if (!userName.trim()) return;
 
-    const res = await fetch("/api/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: userName.trim() }),
-    });
-
-    if (!res.ok) {
-      alert("Failed to get token");
+    const credentials = getCredentials(userName);
+    if (!credentials) {
+      alert(`No credentials configured for "${userName}". Add NEXT_PUBLIC_${userName.trim().toUpperCase()}_USERNAME and NEXT_PUBLIC_${userName.trim().toUpperCase()}_PASSWORD to your environment.`);
       return;
     }
 
-    const credentials = await res.json();
     await joinRoom(credentials);
     setJoined(true);
   };
