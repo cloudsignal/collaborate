@@ -23,16 +23,20 @@ interface UseCursorsOptions {
 
 export function useCursors(options: UseCursorsOptions) {
   const { roomId, userName, throttleMs = 30, staleMs = 3000 } = options;
-  const [cursors, setCursors] = useState<Map<string, CursorPosition>>(new Map());
-  const [latency, setLatency] = useState<number | null>(null);
-  const [messageCount, setMessageCount] = useState(0);
-  const [connectionTime, setConnectionTime] = useState<number | null>(null);
 
+  // Stats shown in header — updated at 1Hz, not per-message
+  const [stats, setStats] = useState({ latency: null as number | null, messageCount: 0, connectionTime: null as number | null, onlineCount: 0 });
   const [userId, setUserId] = useState("");
+
+  // All transient data lives in refs (no re-renders on cursor updates)
+  const cursorsRef = useRef<Map<string, CursorPosition>>(new Map());
   const userIdRef = useRef<string>("");
   const lastPublishRef = useRef(0);
   const connectStartRef = useRef(0);
   const throttleMsRef = useRef(throttleMs);
+  const latencyRef = useRef<number | null>(null);
+  const messageCountRef = useRef(0);
+  const onUpdateRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     throttleMsRef.current = throttleMs;
@@ -40,7 +44,7 @@ export function useCursors(options: UseCursorsOptions) {
 
   const topic = `rooms/${roomId}/cursors`;
 
-  // Handle incoming cursor messages
+  // Handle incoming cursor messages — ref-only, no setState
   const handleMessage = useCallback(
     (_topic: string, payload: unknown) => {
       if (typeof payload !== "object" || payload === null) return;
@@ -49,23 +53,22 @@ export function useCursors(options: UseCursorsOptions) {
 
       const now = Date.now();
       if (data.ts) {
-        setLatency(now - data.ts);
+        latencyRef.current = now - data.ts;
       }
-      setMessageCount((prev) => prev + 1);
+      messageCountRef.current += 1;
 
-      setCursors((prev) => {
-        const next = new Map(prev);
-        next.set(data.id!, {
-          id: data.id!,
-          name: data.name || "Unknown",
-          x: data.x || 0,
-          y: data.y || 0,
-          color: data.color || "#3B82F6",
-          ts: data.ts || now,
-          lastSeen: now,
-        });
-        return next;
+      cursorsRef.current.set(data.id, {
+        id: data.id,
+        name: data.name || "Unknown",
+        x: data.x || 0,
+        y: data.y || 0,
+        color: data.color || "#3B82F6",
+        ts: data.ts || now,
+        lastSeen: now,
       });
+
+      // Notify renderer to update DOM directly
+      onUpdateRef.current?.();
     },
     []
   );
@@ -92,7 +95,7 @@ export function useCursors(options: UseCursorsOptions) {
   // Subscribe once connected
   useEffect(() => {
     if (isConnected) {
-      setConnectionTime(Date.now() - connectStartRef.current);
+      setStats(s => ({ ...s, connectionTime: Date.now() - connectStartRef.current }));
       subscribe(topic, 0);
     }
   }, [isConnected, subscribe, topic]);
@@ -117,30 +120,37 @@ export function useCursors(options: UseCursorsOptions) {
     [publish, topic, userName]
   );
 
-  // Clean up stale cursors
+  // 1Hz tick: sync ref stats to state for header display + clean stale cursors
   useEffect(() => {
     const interval = setInterval(() => {
-      setCursors((prev) => {
-        const now = Date.now();
-        const next = new Map(prev);
-        let changed = false;
-        for (const [id, cursor] of next) {
-          if (now - cursor.lastSeen > staleMs) {
-            next.delete(id);
-            changed = true;
-          }
+      const now = Date.now();
+      let changed = false;
+      for (const [id, cursor] of cursorsRef.current) {
+        if (now - cursor.lastSeen > staleMs) {
+          cursorsRef.current.delete(id);
+          changed = true;
         }
-        return changed ? next : prev;
+      }
+      if (changed) {
+        onUpdateRef.current?.();
+      }
+
+      setStats({
+        latency: latencyRef.current,
+        messageCount: messageCountRef.current,
+        connectionTime: null, // preserve existing
+        onlineCount: cursorsRef.current.size,
       });
+      // Preserve connectionTime from initial set
+      setStats(s => ({ ...s, latency: latencyRef.current, messageCount: messageCountRef.current, onlineCount: cursorsRef.current.size }));
     }, 1000);
     return () => clearInterval(interval);
   }, [staleMs]);
 
   return {
-    cursors,
-    latency,
-    messageCount,
-    connectionTime,
+    cursorsRef,
+    onUpdateRef,
+    stats,
     isConnected,
     isConnecting,
     error,

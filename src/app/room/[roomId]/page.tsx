@@ -2,8 +2,18 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useCursors } from "@/hooks/use-cursors";
-import { RemoteCursor } from "@/components/remote-cursor";
+import { CursorCanvas } from "@/components/remote-cursor";
 import { getColorForUser } from "@/lib/colors";
+
+// Hoisted outside component — Next.js inlines NEXT_PUBLIC_ at build time
+const USER_CREDENTIALS: Record<string, { username: string; password: string } | undefined> = {
+  ALICE: process.env.NEXT_PUBLIC_ALICE_USERNAME && process.env.NEXT_PUBLIC_ALICE_PASSWORD
+    ? { username: process.env.NEXT_PUBLIC_ALICE_USERNAME, password: process.env.NEXT_PUBLIC_ALICE_PASSWORD }
+    : undefined,
+  BOB: process.env.NEXT_PUBLIC_BOB_USERNAME && process.env.NEXT_PUBLIC_BOB_PASSWORD
+    ? { username: process.env.NEXT_PUBLIC_BOB_USERNAME, password: process.env.NEXT_PUBLIC_BOB_PASSWORD }
+    : undefined,
+};
 
 export default function RoomPage({
   params,
@@ -19,17 +29,15 @@ export default function RoomPage({
   const [userName, setUserName] = useState(user || "");
   const [joined, setJoined] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [now, setNow] = useState(Date.now());
   const [burstUntil, setBurstUntil] = useState(0);
-  const isBurst = now < burstUntil;
+  const [burstTick, setBurstTick] = useState(0);
+  const isBurst = burstTick < burstUntil;
   const throttleMs = isBurst ? 16 : 30;
 
   const {
-    cursors,
-    latency,
-    messageCount,
-    connectionTime,
+    cursorsRef,
+    onUpdateRef,
+    stats,
     isConnected,
     isConnecting,
     error,
@@ -38,26 +46,19 @@ export default function RoomPage({
     userId,
   } = useCursors({ roomId, userName, throttleMs });
 
-  // Tick for cursor fade-out opacity
+  // Burst mode countdown — only tick while burst is active
   useEffect(() => {
-    if (!joined) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    if (burstUntil === 0) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setBurstTick(now);
+      if (now >= burstUntil) {
+        setBurstUntil(0);
+        clearInterval(interval);
+      }
+    }, 1000);
     return () => clearInterval(interval);
-  }, [joined]);
-
-  // Track container dimensions
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      setDimensions({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
-      });
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [joined]);
+  }, [burstUntil]);
 
   // Handle mouse movement
   const handleMouseMove = useCallback(
@@ -69,16 +70,6 @@ export default function RoomPage({
     },
     [publishCursor]
   );
-
-  // Preconfigured credentials — Next.js requires static process.env references
-  const USER_CREDENTIALS: Record<string, { username: string; password: string } | undefined> = {
-    ALICE: process.env.NEXT_PUBLIC_ALICE_USERNAME && process.env.NEXT_PUBLIC_ALICE_PASSWORD
-      ? { username: process.env.NEXT_PUBLIC_ALICE_USERNAME, password: process.env.NEXT_PUBLIC_ALICE_PASSWORD }
-      : undefined,
-    BOB: process.env.NEXT_PUBLIC_BOB_USERNAME && process.env.NEXT_PUBLIC_BOB_PASSWORD
-      ? { username: process.env.NEXT_PUBLIC_BOB_USERNAME, password: process.env.NEXT_PUBLIC_BOB_PASSWORD }
-      : undefined,
-  };
 
   // Join room
   const handleJoin = async () => {
@@ -156,7 +147,11 @@ export default function RoomPage({
         <div className="flex items-center gap-4 text-xs text-gray-400">
           {!isViewer && (
             <button
-              onClick={() => setBurstUntil(Date.now() + 10000)}
+              onClick={() => {
+                const target = Date.now() + 10000;
+                setBurstUntil(target);
+                setBurstTick(Date.now());
+              }}
               className={`rounded px-2 py-0.5 font-medium transition-colors ${
                 isBurst
                   ? "bg-green-500 text-white"
@@ -166,10 +161,10 @@ export default function RoomPage({
               {isBurst ? "60Hz" : "33Hz"}
             </button>
           )}
-          {latency !== null && <span>{latency}ms latency</span>}
-          {connectionTime !== null && <span>{connectionTime}ms connect</span>}
-          <span>{messageCount} msgs</span>
-          <span>{cursors.size} online</span>
+          {stats.latency !== null && <span>{stats.latency}ms latency</span>}
+          {stats.connectionTime !== null && <span>{stats.connectionTime}ms connect</span>}
+          <span>{stats.messageCount} msgs</span>
+          <span>{stats.onlineCount} online</span>
         </div>
       </div>
 
@@ -184,16 +179,11 @@ export default function RoomPage({
         }}
         onMouseMove={isViewer ? undefined : handleMouseMove}
       >
-        {/* Remote cursors */}
-        {Array.from(cursors.values()).map((cursor) => (
-          <RemoteCursor
-            key={cursor.id}
-            cursor={cursor}
-            containerWidth={dimensions.width}
-            containerHeight={dimensions.height}
-            now={now}
-          />
-        ))}
+        <CursorCanvas
+          cursorsRef={cursorsRef}
+          onUpdateRef={onUpdateRef}
+          containerRef={canvasRef}
+        />
       </div>
     </div>
   );
