@@ -13,7 +13,7 @@ export function RemoteCursor({ cursor, containerWidth, containerHeight, now }: R
   const x = cursor.x * containerWidth;
   const y = cursor.y * containerHeight;
   const age = now - cursor.lastSeen;
-  const opacity = age > 3000 ? Math.max(0, 1 - (age - 3000) / 7000) : 1;
+  const opacity = age > 1000 ? Math.max(0, 1 - (age - 1000) / 2000) : 1;
 
   return (
     <div

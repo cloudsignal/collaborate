@@ -22,7 +22,7 @@ interface UseCursorsOptions {
 }
 
 export function useCursors(options: UseCursorsOptions) {
-  const { roomId, userName, throttleMs = 30, staleMs = 10000 } = options;
+  const { roomId, userName, throttleMs = 30, staleMs = 3000 } = options;
   const [cursors, setCursors] = useState<Map<string, CursorPosition>>(new Map());
   const [latency, setLatency] = useState<number | null>(null);
   const [messageCount, setMessageCount] = useState(0);

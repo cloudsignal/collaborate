@@ -176,7 +176,7 @@ export default function RoomPage({
       {/* Canvas */}
       <div
         ref={canvasRef}
-        className={`relative flex-1 overflow-hidden ${isViewer ? "cursor-default" : "cursor-none"}`}
+        className="relative flex-1 overflow-hidden"
         style={{
           backgroundImage:
             "radial-gradient(circle, #e5e7eb 1px, transparent 1px)",
