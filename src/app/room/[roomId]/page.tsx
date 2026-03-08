@@ -10,10 +10,11 @@ export default function RoomPage({
   searchParams,
 }: {
   params: Promise<{ roomId: string }>;
-  searchParams: Promise<{ user?: string }>;
+  searchParams: Promise<{ user?: string; mode?: string }>;
 }) {
   const { roomId } = use(params);
-  const { user } = use(searchParams);
+  const { user, mode } = use(searchParams);
+  const isViewer = mode === "viewer";
 
   const [userName, setUserName] = useState(user || "");
   const [joined, setJoined] = useState(false);
@@ -160,13 +161,13 @@ export default function RoomPage({
       {/* Canvas */}
       <div
         ref={canvasRef}
-        className="relative flex-1 cursor-none overflow-hidden"
+        className={`relative flex-1 overflow-hidden ${isViewer ? "cursor-default" : "cursor-none"}`}
         style={{
           backgroundImage:
             "radial-gradient(circle, #e5e7eb 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
-        onMouseMove={handleMouseMove}
+        onMouseMove={isViewer ? undefined : handleMouseMove}
       >
         {/* Remote cursors */}
         {Array.from(cursors.values()).map((cursor) => (

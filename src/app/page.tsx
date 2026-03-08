@@ -33,7 +33,7 @@ export default function Home() {
         </div>
         <div className="flex-1">
           <iframe
-            src={`/room/${roomId}?user=Bob`}
+            src={`/room/${roomId}?user=Bob&mode=viewer`}
             className="h-full w-full"
             title="User Bob"
           />
