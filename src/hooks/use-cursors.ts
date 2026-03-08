@@ -33,7 +33,10 @@ export function useCursors(options: UseCursorsOptions) {
   const lastPublishRef = useRef(0);
   const connectStartRef = useRef(0);
   const throttleMsRef = useRef(throttleMs);
-  throttleMsRef.current = throttleMs;
+
+  useEffect(() => {
+    throttleMsRef.current = throttleMs;
+  }, [throttleMs]);
 
   const topic = `rooms/${roomId}/cursors`;
 
