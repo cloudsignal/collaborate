@@ -74,7 +74,7 @@ export function useCursors(options: UseCursorsOptions) {
   );
 
   const { isConnected, isConnecting, error, connect, disconnect, subscribe, publish } =
-    useCloudSignal({ preset: "desktop", debug: false, onMessage: handleMessage });
+    useCloudSignal({ preset: "desktop", debug: false, onMessage: handleMessage, skipMessageStore: true });
 
   // Connect to the room
   const joinRoom = useCallback(

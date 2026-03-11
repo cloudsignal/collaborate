@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ably benchmark (untracked)
+src/hooks/use-ably.ts
+src/hooks/use-cursors-ably.ts
+src/components/cursor-panel-ably.tsx
+src/app/ably/

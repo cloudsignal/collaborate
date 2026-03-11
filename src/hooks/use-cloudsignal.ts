@@ -64,6 +64,8 @@ export interface UseCloudSignalOptions {
   maxMessages?: number;
   /** Custom message handler called immediately on message receipt */
   onMessage?: (topic: string, payload: unknown) => void;
+  /** Skip storing messages in state (avoids re-renders for high-frequency streams) */
+  skipMessageStore?: boolean;
 }
 
 export interface UseCloudSignalReturn {
@@ -104,6 +106,7 @@ export function useCloudSignal(options: UseCloudSignalOptions = {}): UseCloudSig
     preset = "desktop",
     maxMessages = 100,
     onMessage: onMessageCallback,
+    skipMessageStore = false,
   } = options;
 
   // State
@@ -191,7 +194,9 @@ export function useCloudSignal(options: UseCloudSignalOptions = {}): UseCloudSig
       if (onMessageRef.current) {
         onMessageRef.current(topic, payload);
       }
-      addMessage(topic, payload);
+      if (!skipMessageStore) {
+        addMessage(topic, payload);
+      }
     });
 
     return client;

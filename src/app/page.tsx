@@ -3,9 +3,8 @@
 export default function Home() {
   const roomId = "demo";
 
-  const openBothTabs = () => {
-    window.open(`/room/${roomId}?user=Bob`, "_blank");
-    window.open(`/room/${roomId}?user=Alice&mode=viewer`, "_blank");
+  const openSplitView = () => {
+    window.open(`/room/${roomId}/split`, "_blank");
   };
 
   return (
@@ -19,7 +18,7 @@ export default function Home() {
         </p>
 
         <button
-          onClick={openBothTabs}
+          onClick={openSplitView}
           className="mb-6 w-full rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white hover:bg-blue-600"
         >
           Open Both Tabs
