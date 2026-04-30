@@ -1,0 +1,6 @@
+# @cloudsignal/collaborate
+
+> React collaboration primitives powered by CloudSignal MQTT — cursors, presence, locking, typing indicators, reactions, shared state, and custom broadcast events.
+
+- [Quick Start & Examples](https://unpkg.com/@cloudsignal/collaborate/README.md): Installation, usage examples, collaborative form, shared counter, real-time chat, architecture, performance notes
+- [AI Integration Guide](https://unpkg.com/@cloudsignal/collaborate/PROMPT.md): Core patterns, available primitives, connection options, common patterns, rules for AI code generation

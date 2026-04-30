@@ -1,0 +1,60 @@
+{
+  "name": "@cloudsignal/collaborate",
+  "version": "0.1.2",
+  "description": "React collaboration primitives powered by CloudSignal MQTT — cursors, presence, locking, typing indicators, reactions, and shared state",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "PROMPT.md",
+    "llms.txt"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && bash ../scripts/check-publish-safe.sh ."
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "@cloudsignal/mqtt-client": ">=2.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@cloudsignal/mqtt-client": ">=2.2.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "cloudsignal",
+    "mqtt",
+    "collaboration",
+    "real-time",
+    "cursors",
+    "presence",
+    "locking",
+    "react",
+    "hooks"
+  ],
+  "license": "MIT",
+  "homepage": "https://cloudsignal.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudsignal/collaborate"
+  }
+}
