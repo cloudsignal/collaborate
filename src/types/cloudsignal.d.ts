@@ -54,7 +54,7 @@ declare module "@cloudsignal/mqtt-client" {
       topic: string,
       message: string | object,
       options?: PublishOptions
-    ): Promise<void>;
+    ): Promise<unknown>;
     onMessage(
       callback: (topic: string, message: string, packet?: unknown) => void
     ): void;

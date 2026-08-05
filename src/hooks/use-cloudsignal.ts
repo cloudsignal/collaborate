@@ -18,7 +18,7 @@ interface CloudSignalClient {
   connectWithToken(config: TokenConfig): Promise<void>;
   subscribe(topic: string, qos?: 0 | 1 | 2): Promise<void>;
   unsubscribe(topic: string): Promise<void>;
-  transmit(topic: string, message: string | object, options?: PublishOptions): void;
+  transmit(topic: string, message: string | object, options?: PublishOptions): Promise<unknown>;
   destroy(): void;
   onMessage(handler: (topic: string, message: string) => void): void;
   onConnectionStatusChange: ((connected: boolean) => void) | null;
@@ -317,7 +317,11 @@ export function useCloudSignal(options: UseCloudSignalOptions = {}): UseCloudSig
         return;
       }
       const payload = typeof message === "string" ? message : JSON.stringify(message);
-      clientRef.current.transmit(topic, payload, options);
+      clientRef.current.transmit(topic, payload, options).catch((err) => {
+        // Broker-refused publishes reject (mqtt-client v3); don't let them
+        // become unhandled rejections in a fire-and-forget helper
+        log("Publish refused/failed:", topic, err instanceof Error ? err.message : err);
+      });
       log("Published to:", topic);
     },
     [log]
